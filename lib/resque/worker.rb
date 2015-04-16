@@ -428,6 +428,11 @@ module Resque
       end
     end
 
+    # Should this worker shutdown as soon as current job is finished?
+    def shutdown?
+      @shutdown
+    end
+
     # Kills the forked child immediately, without remorse. The job it
     # is processing will not be completed.
     def kill_child
