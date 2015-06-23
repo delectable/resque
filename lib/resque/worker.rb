@@ -140,6 +140,7 @@ module Resque
           working_on job
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
+          procline "#{get_memory_usage}"
           if @child = fork(job) do
               unregister_signal_handlers if term_child
               reconnect
@@ -154,7 +155,14 @@ module Resque
             rescue SystemCallError
               nil
             end
-            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
+            if $?.signaled?
+              e = DirtyExit.new($?.to_s)
+              log "DirtyExit: #{e.to_s}"
+              log "Memory:"
+              log "  #{get_memory_usage}"
+              log "Caller:    #{caller}"
+              job.fail(e)
+            end
           else
             reconnect
             perform(job, &block)
@@ -628,6 +636,11 @@ module Resque
 
     def log!(message)
       debug(message)
+    end
+
+    def get_memory_usage
+      memory = `ps -o rss= -p #{Process.pid}`.to_i
+      "PID: #{Process.pid} -> MEMORY: #{memory}"
     end
 
     # Deprecated legacy methods for controlling the logging threshhold
