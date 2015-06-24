@@ -639,8 +639,8 @@ module Resque
     end
 
     def get_memory_usage
-      memory = `ps -o rss= -p #{Process.pid}`.to_i
-      "PID: #{Process.pid} -> MEMORY: #{memory}"
+      memory = `ps -p#{$$} -orss`.split[1].to_i / 1024
+      "PID: #{$$} -> MEMORY: #{memory} MB"
     end
 
     # Deprecated legacy methods for controlling the logging threshhold
